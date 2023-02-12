@@ -19,6 +19,7 @@ import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.snackbar.Snackbar
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
@@ -34,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     }
     private lateinit var currloc : Location
     private lateinit var locationManager: LocationManager
+    private val coordinates = ArrayList<LatLng>()
     private val locationPermissionCode = 2
     private val lListener: LocationListener =
         LocationListener { location -> currloc = location }
@@ -68,18 +70,21 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setMqttCallBack()
+
         var listPotholes: Button = findViewById(R.id.list_potholes)
         listPotholes.setOnClickListener{
-            startActivity(Intent(this, MapsActivity::class.java))
+            val i = (Intent(this, MapsActivity::class.java))
+            i.putExtra("coordinates", coordinates)
+            println("Coordinates passed to the next Activity")
+            startActivity(i)
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
-
 
         var driveMode:Button = findViewById(R.id.drive_mode)
         driveMode.setOnClickListener{
             startActivity(Intent(android.content.Intent.ACTION_VIEW,
                 Uri.parse("https://www.google.com/maps/dir/?api=1")))
-
+            mqttClient.subscribe("spothole")
             sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
             sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
             sensorManager.registerListener(mListener,sensor,SensorManager.SENSOR_DELAY_NORMAL)
@@ -104,6 +109,9 @@ class MainActivity : AppCompatActivity() {
             @Throws(Exception::class)
             override fun messageArrived(topic: String, mqttMessage: MqttMessage) {
                 Log.w("Debug", "Message received from host '$SOLACE_MQTT_HOST': $mqttMessage")
+                val coord = LatLng(mqttMessage.toString().split(',')[0].toDouble(), mqttMessage.toString().split(',')[1].toDouble());
+                coordinates.add(coord)
+                println("Coordinates added to the list: $coordinates")
 
             }
 
