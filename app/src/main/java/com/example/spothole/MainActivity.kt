@@ -1,7 +1,7 @@
 package com.example.spothole
+
 import android.Manifest
 import android.content.Context
-import com.example.spothole.mqtt.MqttClientHelper
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.Sensor
@@ -11,6 +11,8 @@ import android.hardware.SensorManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.media.Ringtone
+import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -19,11 +21,11 @@ import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.spothole.mqtt.MqttClientHelper
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.snackbar.Snackbar
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
-import org.eclipse.paho.client.mqttv3.MqttClient
 import org.eclipse.paho.client.mqttv3.MqttMessage
 
 
@@ -50,7 +52,7 @@ class MainActivity : AppCompatActivity() {
 
     private val mListener: SensorEventListener = object : SensorEventListener {
         override fun onSensorChanged(event: SensorEvent) {
-            if (event.values[0] - 9.8 > 9) {
+            if (event.values[0] - 9.8 > 8) {
             Log.d("MY_APP", event.values[1].toString())
                 sensorManager.unregisterListener(this)
                 getLocation()
@@ -70,7 +72,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setMqttCallBack()
-
         var listPotholes: Button = findViewById(R.id.list_potholes)
         listPotholes.setOnClickListener{
             val i = (Intent(this, MapsActivity::class.java))
