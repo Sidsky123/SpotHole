@@ -22,17 +22,19 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         super.onCreate(savedInstanceState)
 
         val holes = intent.extras?.get("coordinates").toString()
-        val strs = holes.split("),")
-        for (i in 0..(strs.size-1)) {
-            val str = strs[i].split(',')
-            val lat = str[0].slice(11..str[0].lastIndex).toDouble()
-            val lon = str[1].slice(0..str[1].lastIndex-2).toDouble()
-            coordinates.add(LatLng(lat, lon))
+        if (holes != "[]"){
+            val strs = holes.split("),")
+            for (i in 0..(strs.size - 1)) {
+                val str = strs[i].split(',')
+                val lat = str[0].slice(11..str[0].lastIndex).toDouble()
+                val lon = str[1].slice(0..str[1].lastIndex - 2).toDouble()
+                coordinates.add(LatLng(lat, lon))
 //            print("lat:$lat")
 //            print("lon:$lon")
-        }
+            }
 
-        println("HOLES:${holes}")
+            println("HOLES:${holes}")
+        }
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -58,19 +60,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 //        val sydney = LatLng(-34.0, 151.0)
 //        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
 //        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
-        for (latLng in coordinates) {
-            println(latLng)
-            mMap.addMarker(MarkerOptions().position(latLng))
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng))
-        }
+        if (!coordinates.isEmpty()) {
+            for (latLng in coordinates) {
+                println(latLng)
+                mMap.addMarker(MarkerOptions().position(latLng))
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng))
+            }
 
-        val builder = LatLngBounds.Builder()
-        for (latLng in coordinates) {
-            builder.include(latLng)
+            val builder = LatLngBounds.Builder()
+            for (latLng in coordinates) {
+                builder.include(latLng)
+            }
+            val bounds = builder.build()
+            val padding = 100 // offset from edges of the map in pixels
+            val cu = CameraUpdateFactory.newLatLngBounds(bounds, padding)
+            mMap.animateCamera(cu)
         }
-        val bounds = builder.build()
-        val padding = 100 // offset from edges of the map in pixels
-        val cu = CameraUpdateFactory.newLatLngBounds(bounds, padding)
-        mMap.animateCamera(cu)
     }
 }
