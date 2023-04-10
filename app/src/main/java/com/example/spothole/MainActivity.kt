@@ -1,5 +1,5 @@
 package com.example.spothole
-
+import java.time.LocalTime
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -14,17 +14,20 @@ import android.location.LocationManager
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.spothole.mqtt.MqttClientHelper
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.firestore.FirebaseFirestore
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
 import org.eclipse.paho.client.mqttv3.MqttMessage
@@ -55,6 +58,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val mListener: SensorEventListener = object : SensorEventListener {
+        @RequiresApi(Build.VERSION_CODES.O)
         override fun onSensorChanged(event: SensorEvent) {
             if (event.values[0] - 9.8 > 8) {
             Log.d("MY_APP", event.values[1].toString())
@@ -69,6 +73,19 @@ class MainActivity : AppCompatActivity() {
                 Handler().postDelayed({
                     sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
                 }, 2000)
+
+                val db = FirebaseFirestore.getInstance()
+                //store code in firebase
+                val user: MutableMap<String, Any> = HashMap()
+                user["Longitude"] = currloc?.longitude.toString()
+                user["Latitude"] = currloc?.latitude.toString()
+                user["Date"] = LocalTime.now()
+
+                db.collection("PotHole")
+                    .add(user)
+                    .addOnSuccessListener { documentReference -> Log.d("Message", "DocumentSnapshot added with ID: " + documentReference.id) }
+                    .addOnFailureListener { e -> Log.w("Message", "Error adding document", e) }
+
             }
         }
 
