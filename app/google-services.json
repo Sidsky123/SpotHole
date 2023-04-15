@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "715386564981",
+    "project_id": "spothole-18994",
+    "storage_bucket": "spothole-18994.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:715386564981:android:b028d6d158923f2a39633c",
+        "android_client_info": {
+          "package_name": "com.example.spothole"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "715386564981-c3srr868pu88p8qbcn1kd9mc3sgtg195.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDWsBGAqesrP_srffWFMIejdANO9x1zPCo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "715386564981-c3srr868pu88p8qbcn1kd9mc3sgtg195.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
