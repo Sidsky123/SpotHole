@@ -8,6 +8,7 @@
 
 
     <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="20dp"
@@ -38,6 +39,14 @@
             android:textSize="20sp"
             tools:layout_editor_absoluteY="485dp" />
 
+        <Button
+            android:id="@+id/upload_img"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Spotted a hole - Upload Image 📸"
+            android:textSize="20sp" />
+
+
     </LinearLayout>
 
     <ImageView
@@ -51,5 +60,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.228"
         app:srcCompat="@mipmap/logo_foreground" />
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
