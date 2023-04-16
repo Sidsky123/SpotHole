@@ -92,7 +92,7 @@ class MainActivity : AppCompatActivity() {
     private val mListener: SensorEventListener = object : SensorEventListener {
         @RequiresApi(Build.VERSION_CODES.O)
         override fun onSensorChanged(event: SensorEvent) {
-            if (event.values[0] - 9.8 > 8) {
+            if (event.values[0] -9.8 > 8) {
             Log.d("MY_APP", event.values[1].toString())
                 sensorManager.unregisterListener(this)
                 if(getLocation()) {
@@ -101,22 +101,24 @@ class MainActivity : AppCompatActivity() {
                         currloc?.latitude.toString() + " , " + currloc?.longitude.toString()
                     )
                     Log.d("LOC12345", currloc?.latitude.toString() + " , " + currloc?.longitude.toString())
+
+                    val db = FirebaseFirestore.getInstance()
+                    //store code in firebase
+                    val user: MutableMap<String, Any> = HashMap()
+                    user["Longitude"] = currloc?.longitude.toString()
+                    user["Latitude"] = currloc?.latitude.toString()
+                    user["Date"] = LocalTime.now()
+
+                    db.collection("PotHole")
+                        .add(user)
+                        .addOnSuccessListener { documentReference -> Log.d("Message", "DocumentSnapshot added with ID: " + documentReference.id) }
+                        .addOnFailureListener { e -> Log.w("Message", "Error adding document",e)}
                 }
                 Handler().postDelayed({
                     sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
                 }, 2000)
 
-                val db = FirebaseFirestore.getInstance()
-                //store code in firebase
-                val user: MutableMap<String, Any> = HashMap()
-                user["Longitude"] = currloc?.longitude.toString()
-                user["Latitude"] = currloc?.latitude.toString()
-                user["Date"] = LocalTime.now()
 
-                db.collection("PotHole")
-                    .add(user)
-                    .addOnSuccessListener { documentReference -> Log.d("Message", "DocumentSnapshot added with ID: " + documentReference.id) }
-                    .addOnFailureListener { e -> Log.w("Message", "Error adding document",e)}
             }
         }
 

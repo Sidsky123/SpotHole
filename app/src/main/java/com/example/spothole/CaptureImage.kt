@@ -9,10 +9,13 @@ import android.graphics.Bitmap
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.startActivityForResult
@@ -22,6 +25,7 @@ import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import java.io.ByteArrayOutputStream
+import java.time.LocalTime
 import java.util.*
 
 
@@ -85,11 +89,14 @@ class CaptureImage : AppCompatActivity() {
         startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             val imageBitmap = data?.extras?.get("data") as Bitmap
             imageView.setImageBitmap(imageBitmap)
+
+
 
             val baos = ByteArrayOutputStream()
             imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
@@ -126,6 +133,24 @@ class CaptureImage : AppCompatActivity() {
                 } else {
                     // Show error message
                 }
+            }
+            if(getLocation()) {
+                val db = FirebaseFirestore.getInstance()
+                //store code in firebase
+                val user: MutableMap<String, Any> = HashMap()
+                user["Longitude"] = currloc?.longitude.toString()
+                user["Latitude"] = currloc?.latitude.toString()
+                user["Date"] = LocalTime.now()
+
+                db.collection("PotHole")
+                    .add(user)
+                    .addOnSuccessListener { documentReference ->
+                        Log.d(
+                            "Message",
+                            "DocumentSnapshot added with ID: " + documentReference.id
+                        )
+                    }
+                    .addOnFailureListener { e -> Log.w("Message", "Error adding document", e) }
             }
         }
     }
