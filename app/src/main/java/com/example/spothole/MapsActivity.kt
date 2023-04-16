@@ -1,24 +1,24 @@
 package com.example.spothole
 
 import android.content.ContentValues.TAG
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Intent
+import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
-import androidx.core.text.isDigitsOnly
-
+import androidx.appcompat.app.AppCompatActivity
+import com.example.spothole.databinding.ActivityMapsBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
-import com.example.spothole.databinding.ActivityMapsBinding
 import com.google.android.gms.maps.model.LatLngBounds
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
+
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -31,70 +31,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val firestore= Firebase.firestore
-        firestore.collection("PotHole").get().addOnSuccessListener{result->
-            for (document in result)
-            {
-                Log.d(TAG, "asdfg $document")
-
-
-                //var url= document["url"].toString()
-                var lt=document["Latitude"].toString()
-                var lngt=document["Longitude"].toString()
-//                if(lt.isDigitsOnly() || lt.isEmpty() != null) {
-//
-//
-//                    lt = document["Latitude"].toString()
-//
-//                }
-//                if(lngt.isDigitsOnly() || lngt.isEmpty() != null) {
-//
-//
-//                    lngt = document["Longitude"].toString()
-//
-//                }
-                val Pots= PotholeData(lat=lt,longt=lngt)
-                data.add(Pots)
-                Log.d(TAG, "onCreate: Values are $data")
-
-
-            }
-
-        }
-
-        val firestore_img= Firebase.firestore
-
-        firestore_img.collection("images").get().addOnSuccessListener{result->
-            for (document in result)
-            {
-                Log.d(TAG, "abcdefgh $document")
-
-
-                //var url= document["url"].toString()
-                var lt=document["Latitute"].toString()
-                var lngt=document["Long"].toString()
-                var url=document["url"].toString()
-//                if(lt.isDigitsOnly() || lt.isEmpty() != null) {
-//
-//
-//                    lt = document["Latitude"].toString()
-//
-//                }
-//                if(lngt.isDigitsOnly() || lngt.isEmpty() != null) {
-//
-//
-//                    lngt = document["Longitude"].toString()
-//
-//                }
-                val image_pots= ImageData(lat=lt,longt=lngt,url=url)
-                data_img.add(image_pots)
-                Log.d(TAG, "on image create $data_img")
-
-
-            }
-
-        }
+        //displays markers for coordinates in mqtt
         val holes = intent.extras?.get("coordinates").toString()
         if (holes != "[]"){
             val strs = holes.split("),")
@@ -103,16 +40,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 val lat = str[0].slice(11..str[0].lastIndex).toDouble()
                 val lon = str[1].slice(0..str[1].lastIndex - 2).toDouble()
                 coordinates.add(LatLng(lat, lon))
-//            print("lat:$lat")
-//            print("lon:$lon")
+
             }
 
             println("HOLES:${holes}")
         }
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
@@ -130,43 +64,81 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        Log.d(TAG, "onMapReady: We are chaapo $data and $coordinates2")
+        // retrieve coordinates from firebase
+        val firestore= Firebase.firestore
+        firestore.collection("PotHole").get().addOnSuccessListener{result->
+            for (document in result)
+            {
+                Log.d(TAG, "Retrieving data $document")
 
 
-        if(data.isNotEmpty()) {
-            for (x in data) {
-                val xlat = x.lat
-                val xlong = x.longt
-                val ltlng =
-                    xlat?.let { xlong?.let { it1 -> LatLng(it.toDouble(), it1.toDouble()) } }
-                coordinates2.add(ltlng!!)
 
-                for(y in data_img)
+                var lt=document["Latitude"].toString()
+                var lngt=document["Longitude"].toString()
+
+                val Pots= PotholeData(lat=lt,longt=lngt)
+                data.add(Pots)
+
+            }
+            Log.d(TAG, "onCreate: Values are $data")
+
+            val firestore_img= Firebase.firestore
+            // retrieve images with coordinates from firebase
+            firestore_img.collection("images").get().addOnSuccessListener{result->
+                for (document in result)
                 {
+                    Log.d(TAG, "abcdefgh $document")
+                    var lt=document["Latitute"].toString()
+                    var lngt=document["Long"].toString()
+                    var url=document["url"].toString()
 
-                    if((y.lat==xlat) && (y.longt==xlong)){
+                    val image_pots= ImageData(lat=lt,longt=lngt,url=url)
+                    data_img.add(image_pots)
+                }
+                Log.d(TAG, "on image create $data_img")
+                Log.d(TAG, "onMapReady with Success: Display coordinates $data :: $coordinates2")
+                mapReady()
+            }
 
-                        if(y.url!=null) {
+        }
+    }
 
-                            val imgy: String? = y.url
-                            Log.d(TAG, "onIMAGEREADY: Surya and $imgy")
-                            mMap.addMarker(MarkerOptions().position(ltlng).title("Image Link").snippet(imgy))
-                            mMap.moveCamera(CameraUpdateFactory.newLatLng(ltlng!!))
-                        }
-                    }
-                    else{
-                        mMap.addMarker(MarkerOptions().position(ltlng))
 
-                    }
 
+
+    fun mapReady(){
+
+//        if(data.isNotEmpty()) {
+        for (x in data_img) {
+            val xlat = x.lat
+            val xlong = x.longt
+            val ltlng =
+                xlat?.let { xlong?.let { it1 -> LatLng(it.toDouble(), it1.toDouble()) } }
+            coordinates2.add(ltlng!!)
+            //check if image url is present
+            if(x.url!=null) {
+                val imgy: String? = x.url
+                Log.d(TAG, "onIMAGEREADY: Found the image url in firebase $imgy")
+                // add image url to the marker snippet
+                mMap.addMarker(MarkerOptions().position(ltlng).title("CLICK HERE to view the PotHole").snippet(imgy).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)))
+                //move camera to the current location
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(ltlng!!))
+            }
+            for(y in data)
+            {
+                //if image is not there add marker to the map
+                if((y.lat!=xlat) && (y.longt!=xlong)){
+                    val y_latlng =
+                        y.lat?.let { y.longt?.let { it1 -> LatLng(it.toDouble(), it1.toDouble()) } }
+                    mMap.addMarker(MarkerOptions().position(y_latlng!!))
                 }
 
-//                mMap.addMarker(MarkerOptions().position(ltlng))
 
-
-                Log.d(TAG, "onMapReady: printing values of Coordinates2 : $coordinates2")
             }
+            Log.d(TAG, "onMapReady: printing values of Coordinates2 : $coordinates2")
         }
+
+//        }
         if(coordinates2.isNotEmpty()) {
             val builder = LatLngBounds.Builder()
             for (latLng in coordinates2) {
@@ -177,5 +149,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             val cu = CameraUpdateFactory.newLatLngBounds(bounds, padding)
             mMap.animateCamera(cu)
         }
+        // Displays image of potholes when the url in snippet is clicked
+        mMap.setOnInfoWindowClickListener { marker ->
+            val url = marker.snippet
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            startActivity(intent)
+
+        }
+
+
+
     }
 }

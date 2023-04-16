@@ -45,6 +45,7 @@ class CaptureImage : AppCompatActivity() {
     private val locationPermissionCode = 2
     private val lListener: LocationListener =
         LocationListener { location -> currloc = location }
+    // method to get the current location
     private fun getLocation(): Boolean {
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         if ((ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
@@ -67,7 +68,7 @@ class CaptureImage : AppCompatActivity() {
 
         storage = FirebaseStorage.getInstance()
         firestore = FirebaseFirestore.getInstance()
-
+        //capture image is button is clicked
         captureButton.setOnClickListener {
             // Check for camera permission
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -95,18 +96,12 @@ class CaptureImage : AppCompatActivity() {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             val imageBitmap = data?.extras?.get("data") as Bitmap
             imageView.setImageBitmap(imageBitmap)
-
-
-
             val baos = ByteArrayOutputStream()
             imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
             val data = baos.toByteArray()
-
             val imageName = UUID.randomUUID().toString() + ".jpg"
             val imageRef = storage.reference.child("images/$imageName")
-
-
-
+            //upload image in firebase
             val uploadTask = imageRef.putBytes(data)
             uploadTask.addOnCompleteListener { task: Task<*> ->
                 if (task.isSuccessful and getLocation()) {
@@ -134,6 +129,7 @@ class CaptureImage : AppCompatActivity() {
                     // Show error message
                 }
             }
+            //upload pothole location in database
             if(getLocation()) {
                 val db = FirebaseFirestore.getInstance()
                 //store code in firebase
@@ -154,7 +150,7 @@ class CaptureImage : AppCompatActivity() {
             }
         }
     }
-
+//canera permissions
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,

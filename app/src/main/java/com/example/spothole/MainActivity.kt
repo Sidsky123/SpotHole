@@ -92,6 +92,7 @@ class MainActivity : AppCompatActivity() {
     private val mListener: SensorEventListener = object : SensorEventListener {
         @RequiresApi(Build.VERSION_CODES.O)
         override fun onSensorChanged(event: SensorEvent) {
+            //check
             if (event.values[0] -9.8 > 8) {
             Log.d("MY_APP", event.values[1].toString())
                 sensorManager.unregisterListener(this)
@@ -100,10 +101,10 @@ class MainActivity : AppCompatActivity() {
                         "spothole",
                         currloc?.latitude.toString() + " , " + currloc?.longitude.toString()
                     )
-                    Log.d("LOC12345", currloc?.latitude.toString() + " , " + currloc?.longitude.toString())
+                    Log.d("The current location is", currloc?.latitude.toString() + " , " + currloc?.longitude.toString())
 
                     val db = FirebaseFirestore.getInstance()
-                    //store code in firebase
+                    //store data in firebase
                     val user: MutableMap<String, Any> = HashMap()
                     user["Longitude"] = currloc?.longitude.toString()
                     user["Latitude"] = currloc?.latitude.toString()
@@ -244,7 +245,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         captureButton= findViewById(R.id.upload_img)
-
+        //open the activity to capture an image of the pothole
         captureButton.setOnClickListener(){
             val intent= Intent(this,CaptureImage::class.java)
             intent.putExtra("coordinates", coordinates)
